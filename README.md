@@ -13,11 +13,6 @@ npm start
 The server prints a `Local:` URL for this machine and one or more `Network:`
 URLs. Open a **Network** URL on any phone or laptop on the same Wi-Fi.
 
-## Your sound
-
-Copy your mp3 to `public/sounds/notify.mp3`. Until it's there, the app plays a
-synthesized beep instead, so you can test without it.
-
 ## The feedback loop
 
 Everyone carries a probability bar, 0–100, starting full.
