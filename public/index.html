@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0f14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Buzzr</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="join-screen" class="screen">
+      <div class="join-card">
+        <h1 class="logo">Buzzr</h1>
+        <p class="tagline">Pick someone online. Their phone rings.</p>
+        <form id="join-form" autocomplete="off">
+          <input
+            id="name-input"
+            type="text"
+            maxlength="24"
+            placeholder="Your name"
+            aria-label="Your name"
+            required
+          />
+          <button type="submit">Join</button>
+        </form>
+        <p class="hint">Tapping Join also unlocks sound on this device.</p>
+      </div>
+    </main>
+
+    <main id="app-screen" class="screen" hidden>
+      <header class="topbar">
+        <div class="me">
+          <span class="dot" id="status-dot"></span>
+          <span id="me-name">…</span>
+        </div>
+        <span class="count" id="online-count"></span>
+      </header>
+
+      <div class="my-bar">
+        <span class="my-bar-label">My probability</span>
+        <span class="meter meter-lg">
+          <span class="meter-fill" id="my-meter"></span>
+        </span>
+        <span class="meter-value" id="my-value">100</span>
+      </div>
+
+      <!-- Inline, non-modal note of who buzzed last. Nothing covers the screen. -->
+      <p class="last-buzz" id="last-buzz" aria-live="polite"></p>
+
+      <section class="list-wrap">
+        <p id="empty-state" class="empty">
+          Nobody else is here yet.<br /><small>Open this page on another device to see them appear.</small>
+        </p>
+        <ul id="user-list" class="user-list"></ul>
+      </section>
+
+      <footer class="footer">
+        <button id="test-sound" class="ghost" type="button">Test my sound</button>
+      </footer>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

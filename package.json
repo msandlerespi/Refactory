@@ -1,0 +1,15 @@
+{
+  "name": "buzzr",
+  "version": "1.0.0",
+  "description": "See who else is online and buzz their phone.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.17.1"
+  }
+}
