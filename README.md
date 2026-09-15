@@ -1,4 +1,4 @@
-# Buzzr
+# Refactory
 
 See everyone else connected to the site, tap one, and their phone plays your
 notification sound.
