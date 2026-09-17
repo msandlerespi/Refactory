@@ -1,5 +1,5 @@
 {
-  "name": "buzzr",
+  "name": "refactory",
   "version": "1.0.0",
   "description": "See who else is online and buzz their phone.",
   "main": "server.js",

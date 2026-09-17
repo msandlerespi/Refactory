@@ -45,7 +45,19 @@ const OVERLAP_SOUNDS = true;
 const VIBRATE_ON_BUZZ = true;
 const VIBRATE_PATTERN = [200];
 
-const SOUND_URL = 'sounds/notify.mp3';
+// Every file below must exist in public/sounds/. Add a file here to offer it
+// in the join screen's dropdown.
+const SOUND_OPTIONS = [
+  { file: 'notify.mp3', label: 'Notify (default)' },
+  { file: 'bongo.mp3', label: 'Bongo' },
+  { file: 'clave.mp3', label: 'Clave' },
+  { file: 'cowbell.wav', label: 'Cowbell' },
+  { file: 'cymbal.mp3', label: 'Cymbal' },
+  { file: 'shaker.wav', label: 'Shaker' },
+  { file: 'snare.wav', label: 'Snare' },
+  { file: 'swoosh.mp3', label: 'Swoosh' },
+  { file: 'whistle.mp3', label: 'Whistle' },
+];
 
 /* ========================================================================== */
 
@@ -64,6 +76,7 @@ const lastBuzz = $('last-buzz');
 const myMeter = $('my-meter');
 const myValue = $('my-value');
 const toast = $('toast');
+const soundSelect = $('sound-select');
 
 const AVATAR_COLORS = ['#6c5cff', '#ff6b6b', '#2fb8a4', '#f0a33a', '#4ad1ff', '#d466d8', '#7bc043'];
 
@@ -83,6 +96,17 @@ let notifyBuffer = null;
 let encodedSound = null; // ArrayBuffer, fetched before the context exists
 let soundOffsetS = 0; // where in the buffer the audible part begins
 
+// Populate the join-screen dropdown and restore the last choice.
+for (const { file, label } of SOUND_OPTIONS) {
+  const option = document.createElement('option');
+  option.value = file;
+  option.textContent = label;
+  soundSelect.append(option);
+}
+
+let selectedSoundFile = localStorage.getItem('refactory:sound') || SOUND_OPTIONS[0].file;
+soundSelect.value = selectedSoundFile;
+
 /** Seconds of silence at the head of the buffer, across all channels. */
 function findLeadingSilence(buffer) {
   let earliest = Infinity;
@@ -101,14 +125,50 @@ function findLeadingSilence(buffer) {
   return Math.max(0, earliest / buffer.sampleRate - ATTACK_GUARD_S);
 }
 
-const soundFetch = fetch(SOUND_URL)
-  .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error(`HTTP ${res.status}`))))
-  .then((bytes) => {
-    encodedSound = bytes;
-  })
-  .catch(() => {
-    console.warn(`${SOUND_URL} not found — falling back to a synthesized beep.`);
+// Re-run whenever the selected sound changes, so encodedSound always matches
+// selectedSoundFile.
+function fetchSound(file) {
+  encodedSound = null;
+  return fetch(`sounds/${file}`)
+    .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error(`HTTP ${res.status}`))))
+    .then((bytes) => {
+      encodedSound = bytes;
+    })
+    .catch(() => {
+      console.warn(`sounds/${file} not found — falling back to a synthesized beep.`);
+    });
+}
+
+let soundFetch = fetchSound(selectedSoundFile);
+
+// decodeAudioData detaches the buffer, so hand it a copy; that's also why this
+// can safely be re-run every time encodedSound changes.
+function decodeSelectedSound() {
+  if (!audioCtx || !encodedSound) return;
+  audioCtx.decodeAudioData(encodedSound.slice(0)).then(
+    (buffer) => {
+      notifyBuffer = buffer;
+      soundOffsetS = TRIM_LEADING_SILENCE ? findLeadingSilence(buffer) : 0;
+
+      const outputMs = Math.round((audioCtx.baseLatency + (audioCtx.outputLatency || 0)) * 1000);
+      console.info(
+        `Sound ready. Output latency: ${outputMs} ms. ` +
+          `Skipping ${Math.round(soundOffsetS * 1000)} ms of leading silence; ` +
+          `${Math.round((buffer.duration - soundOffsetS) * 1000)} ms will play.`
+      );
+    },
+    () => console.warn(`Could not decode sounds/${selectedSoundFile} — falling back to a beep.`)
+  );
+}
+
+soundSelect.addEventListener('change', () => {
+  selectedSoundFile = soundSelect.value;
+  localStorage.setItem('refactory:sound', selectedSoundFile);
+  notifyBuffer = null;
+  soundFetch = fetchSound(selectedSoundFile).then(() => {
+    if (audioCtx) decodeSelectedSound();
   });
+});
 
 // Mobile browsers only allow audio that a user gesture started, so this runs
 // inside the Join tap.
@@ -127,22 +187,7 @@ function unlockAudio() {
   silent.start(0);
 
   soundFetch.then(() => {
-    if (!encodedSound || notifyBuffer) return;
-    // decodeAudioData detaches the buffer, so hand it a copy.
-    audioCtx.decodeAudioData(encodedSound.slice(0)).then(
-      (buffer) => {
-        notifyBuffer = buffer;
-        soundOffsetS = TRIM_LEADING_SILENCE ? findLeadingSilence(buffer) : 0;
-
-        const outputMs = Math.round((audioCtx.baseLatency + (audioCtx.outputLatency || 0)) * 1000);
-        console.info(
-          `Sound ready. Output latency: ${outputMs} ms. ` +
-            `Skipping ${Math.round(soundOffsetS * 1000)} ms of leading silence; ` +
-            `${Math.round((buffer.duration - soundOffsetS) * 1000)} ms will play.`
-        );
-      },
-      () => console.warn(`Could not decode ${SOUND_URL} — falling back to a beep.`)
-    );
+    if (!notifyBuffer) decodeSelectedSound();
   });
 }
 
@@ -359,7 +404,7 @@ function connect() {
         myId = msg.id;
         myName = msg.name;
         meName.textContent = msg.name;
-        localStorage.setItem('buzzr:name', msg.name);
+        localStorage.setItem('refactory:name', msg.name);
         break;
       case 'users':
         renderUsers(msg.users);
@@ -388,7 +433,7 @@ function connect() {
 
 /* ---------- Start ---------- */
 
-nameInput.value = localStorage.getItem('buzzr:name') || '';
+nameInput.value = localStorage.getItem('refactory:name') || '';
 
 joinForm.addEventListener('submit', (event) => {
   event.preventDefault();

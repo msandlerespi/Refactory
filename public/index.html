@@ -7,13 +7,13 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Buzzr</title>
+    <title>Refactory</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main id="join-screen" class="screen">
       <div class="join-card">
-        <h1 class="logo">Buzzr</h1>
+        <h1 class="logo">Refactory</h1>
         <p class="tagline">Pick someone online. Their phone rings.</p>
         <form id="join-form" autocomplete="off">
           <input
@@ -24,6 +24,7 @@
             aria-label="Your name"
             required
           />
+          <select id="sound-select" aria-label="Notification sound"></select>
           <button type="submit">Join</button>
         </form>
         <p class="hint">Tapping Join also unlocks sound on this device.</p>
